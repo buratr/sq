@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("cart OBJ:", JSON.parse(localStorage.getItem('cart')))
+    //console.log("cart OBJ:", JSON.parse(localStorage.getItem('cart')))
     let currentEstimate= null;
     let getLocalCart = function () {
         if(localStorage.getItem('cart')){
@@ -470,7 +470,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let cartItemShootOptionList = creareDomElement("div", "cart-item-shoot-option-list")
         let optionValText="";
         item.options.forEach((opt, optId)=>{
-            optId ? optionValText += ",&nbsp;"+ ucFirst(opt.optionTitle.toLowerCase())  : optionValText += ucFirst(opt.optionTitle.toLowerCase())
+            if (opt.optionTitle){
+                optId ? optionValText += ", "+ ucFirst(opt.optionTitle.toLowerCase())  : optionValText += ucFirst(opt.optionTitle.toLowerCase())
+            }
         })
         let optionValue = creareDomElement("div", "option-value", optionValText)
         let cartItemSumPattern = creareDomElement("div", "cart-item-sum-pattern")
@@ -488,6 +490,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 val = item.price * item.count
             }
 
+            item.options.forEach((option)=>{
+                if(option.price){
+                    val = Number(val)+option.price*option.count
+                    //sumPrice.innerHTML = formatNumber(sumPriceText)
+                    subTotal = Number(subTotal)+option.price*option.count
+                }
+            })
             val = formatNumber(val)
 
             if (val > 1000) {
@@ -520,7 +529,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let addonsSum = null;
 
             addonsSum = addOnse.price !== "TBD" ? "$"+(addOnse.count*Number(addOnse.price)) : "TBD"
-            let optionValueText="Items:&nbsp;"+addOnse.count+"&nbsp;|&nbsp;Subtotal:&nbsp;"+addonsSum;
+            let optionValueText=null
+            if(addOnse.price !== 0){
+                optionValueText= "Items: "+addOnse.count+"&nbsp;|&nbsp;Subtotal:&nbsp;"+addonsSum;
+            }else{
+                optionValueText= addOnse.add_ons_desc
+            }
             let optionValue = creareDomElement("div", "option-value", optionValueText)
             let cartAddonsRemove = creareDomElement("div", "cart-item-remove", "Remove")
             //cartAddonsRemove.id = "cart-addons-"+id
@@ -636,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
 
-        console.log(addOnsArr)
+        //console.log(addOnsArr)
         // if (addOnsArr.length > 0) {
         //     addOnsArr.forEach((item, id) => {
         //         if (countProduct && id === 0) {
@@ -665,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (!skip && !addOns_TBD) {
-            let valAll = subTotal
+            let valAll = Math.ceil(subTotal)
             if (addOnsArr.length > 0) {
                 addOnsArr.forEach((ons) => {
                     valAll += ons.count * ons.price
