@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
     const opencart = new Event('opencart');
+    let shootTypeSelected = null;
+    let priceOptionsTree = {
+
+    }
+    // defaultSelectOption=[
+    //     "model_options",
+    //     "model_type"
+    // ]
     let fillForm = {
         objects: false,
         shadow: false,
@@ -41,6 +49,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var lastPathSegment = getLastPathSegment();
     let shotTypeMass={
 
+    }
+    function formatNumber(number) {
+        var rounded = Number(number).toFixed(2); // Округляем до двух знаков после запятой
+        return rounded.replace(/\.?0+$/, ''); // Удаляем нули после запятой, если число целое
     }
     /*** Коэффициент сходства ***/
     function calculateWordSimilarity(string1, string2) {
@@ -94,13 +106,13 @@ document.addEventListener('DOMContentLoaded', function () {
 //console.log(currentPos)
     let price = {}
     document.querySelectorAll('.info-price').forEach((price_wrap) => {
-        let data_shot = price_wrap.querySelector('.shoot').innerHTML.split(" ")[0].toLowerCase()
-        let data_object = price_wrap.querySelector('.objects').innerHTML.split(" ")[0].toLowerCase()
-        let priceVal = Number(price_wrap.querySelector('.price').innerHTML)
+        let data_shot = price_wrap.querySelector('.shoot').innerText.toLowerCase().replaceAll(" ", "_")  // price_wrap.querySelector('.shoot').innerHTML.split(" ")[0].toLowerCase()
+        let data_object = price_wrap.querySelector('.objects').innerText.toLowerCase().replaceAll(" ", "_") //  price_wrap.querySelector('.objects').innerHTML.split(" ")[0].toLowerCase()
+        let priceVal = Number(price_wrap.querySelector('.price').innerText)
         if ((priceVal ^ 0) != priceVal) {
             priceVal = priceVal.toFixed(2)
         }
-        let enterpriseVal = Number(price_wrap.querySelector('.enterprise').innerHTML)
+        let enterpriseVal = Number(price_wrap.querySelector('.enterprise')?  price_wrap.querySelector('.enterprise').innerHTML : 0)
         if ((enterpriseVal ^ 0) != enterpriseVal) {
             enterpriseVal = enterpriseVal.toFixed(2)
         }
@@ -126,13 +138,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     })// info-price => forEach
 
+    console.log("showParam: ", showParam)
+    console.log("price: ", price)
     let imagesForObjects = {}
     document.querySelectorAll('.images-for-objects').forEach((el) => {
-        let titleShot = el.querySelector('.title-shoot').innerHTML.split(" ")[0].toLowerCase();
+        let titleShot = el.querySelector('.title-shoot').innerText.toLowerCase().replaceAll(" ","_");// .split(" ")[0].toLowerCase();
         //console.log(titleShot);
         imagesForObjects[titleShot] = {};
         el.querySelectorAll('.img-for-obj-wrap').forEach((imgWrap) => {
-            let titleObj = imgWrap.querySelector('.title-obj').innerHTML.split(" ")[0].toLowerCase();
+            let titleObj = imgWrap.querySelector('.title-obj').innerText.toLowerCase().replaceAll(" ","_"); //.split(" ")[0].toLowerCase();
             let srcImg = imgWrap.querySelector('.prev-img').src;
             imagesForObjects[titleShot][titleObj] = srcImg;
         })
@@ -152,20 +166,37 @@ document.addEventListener('DOMContentLoaded', function () {
         // currentPos.enterprise = price[currentPos.shoot + "_" + currentPos.obj].enterprise
         // sumPrice.innerHTML = currentPos.price;
         // sumEnterprise.innerHTML = currentPos.enterprise;
+        let sumPriceText = 0;
         currentPos.options.forEach((option)=>{
-            if(price[currentPos.shoot + "_" + option.value]) {
-                currentPos.price = price[currentPos.shoot + "_" + option.value].price
-                currentPos.enterprise = price[currentPos.shoot + "_" + option.value].enterprise
-                sumPrice.innerHTML = currentPos.price * (1 - currentPos.estimate.percent / 100);
+            let modelOptions = currentPos.options.find(item => item.groupName === "model_options");
+            let modelType = modelOptions ? modelOptions.value:""
+            let partOptionForProduct = option.value?option.value:""
+            let extractPriceObj = price[currentPos.shoot + "_" + partOptionForProduct] || price[modelType + "_" + option.value]
+            if(extractPriceObj) {
+                currentPos.price = extractPriceObj.price
+                currentPos.enterprise = extractPriceObj.enterprise
+                 sumPriceText = sumPriceText + currentPos.price * (1 - currentPos.estimate.percent / 100);
+
+                sumPrice.innerHTML = formatNumber(sumPriceText)
                 sumEnterprise.innerHTML = currentPos.enterprise;
             }
+
         })
+        // currentPos.options.forEach((option)=>{
+        //     if(price[currentPos.shoot + "_" + option.value]) {
+        //         currentPos.price = price[currentPos.shoot + "_" + option.value].price
+        //         currentPos.enterprise = price[currentPos.shoot + "_" + option.value].enterprise
+        //         sumPrice.innerHTML = currentPos.price * (1 - currentPos.estimate.percent / 100);
+        //         sumEnterprise.innerHTML = currentPos.enterprise;
+        //     }
+        // })
     }
     function recalculatePriceUniversal(optionName) {
         currentPos.options.forEach((option)=>{
-            if(price[currentPos.shoot + "_" + option.value]) {
-                currentPos.price = price[currentPos.shoot + "_" + option.value].price
-                currentPos.enterprise = price[currentPos.shoot + "_" + option.value].enterprise
+            let extractPriceObj = price[currentPos.shoot + "_" + option.value] || price[currentPos.options.find(item => item.groupName === "model_options").value + "_" + option.value]
+            if(extractPriceObj) {
+                currentPos.price = extractPriceObj.price
+                currentPos.enterprise = extractPriceObj.enterprise
                 sumPrice.innerHTML = currentPos.price * (1 - currentPos.estimate.percent / 100);
                 sumEnterprise.innerHTML = currentPos.enterprise;
             }
@@ -216,6 +247,34 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
+    /** отображение формы ввода дополнительной опции **/
+    /**
+     * additionally: Дополнительная опция (елемент)
+     * showForm: Отображать ли форму (true, false)
+     * showResult: Отображать ли результат (true, false)
+     * **/
+    function showAditionallyForm (additionally, showForm, showResult){
+        if(showResult === true && showForm===false){ /** show RESULT, hide FORM **/
+            errorTitle(additionally.parentNode.querySelector(".t-20-700-title"), false)
+            additionally.querySelector(".set-number-wrap").classList.add("set-number-wrap-hide");
+            additionally.querySelector(".button-select-wrap").classList.add("button-select-wrap-hide")
+            additionally.querySelector(".result-number-wrap").classList.remove("result-number-wrap-hide")
+        }else if(showResult===false && showForm===true){ /** hide RESULT, show FORM **/
+            errorTitle(additionally.parentNode.querySelector(".t-20-700-title"), false)
+            additionally.querySelector(".set-number-wrap").classList.remove("set-number-wrap-hide");
+            additionally.querySelector(".button-select-wrap").classList.add("button-select-wrap-hide")
+            additionally.querySelector(".result-number-wrap").classList.add("result-number-wrap-hide")
+        }else if(showResult===false && showForm===false){ /** hide RESULT, hide FORM **/
+            errorTitle(additionally.parentNode.querySelector(".t-20-700-title"), false)
+            additionally.querySelector(".set-number-wrap").classList.add("set-number-wrap-hide")
+            additionally.querySelector(".button-select-wrap").classList.remove("button-select-wrap-hide")
+            additionally.querySelector(".button-select-wrap").classList.remove("button-select-wrap-hide")
+            additionally.querySelector(".result-number-wrap").classList.add("result-number-wrap-hide")
+
+        }
+
+    }
+
     /**** Тригеры SHOOT *****/
     let firstShot = null;
 
@@ -224,16 +283,17 @@ document.addEventListener('DOMContentLoaded', function () {
     let shootType_triggers = shootType.querySelectorAll('.option-item');
     let objects = document.querySelector('#objects');
     let shadow = document.querySelector('#shadow');
-    let objects_triggers = objects.querySelectorAll('.option-item');
+    let objects_triggers = objects?objects.querySelectorAll('.option-item'):null;
     let shadow_triggers = shadow.querySelectorAll('.option-item');
 
     function optionInit(){
 
         shootType_triggers.forEach((tr, id) => {
-            console.log(tr.querySelector(".title-trigger").innerText)
-            console.log(getLastPathSegment())
-            console.log(calculateWordSimilarity(tr.querySelector(".title-trigger").innerText, getLastPathSegment()))
-
+            //console.log(tr.querySelector(".title-trigger").innerText)
+            //console.log(getLastPathSegment())
+            //console.log(calculateWordSimilarity(tr.querySelector(".title-trigger").innerText, getLastPathSegment()))
+            let inObject = null;
+            let inShadow = null;
             // Находим соответствующий триггер SHOOT в зависимости от ссылки
             if(calculateWordSimilarity(tr.querySelector(".title-trigger").innerText, getLastPathSegment()) > 30){
                 tr.querySelector(".trigger-wrap").classList.add("trigger-wrap-active")
@@ -243,117 +303,351 @@ document.addEventListener('DOMContentLoaded', function () {
                     currentPos.group = "product"
                 }
                 currentPos.img =tr.querySelector(".trigger-img").src
-                // если в триггере включен Shadow
-                let inShadow = getComputedStyle(tr.querySelector('.in-shadow')).display == 'none' ? false : true;
-                if (!inShadow) {
-                    fillForm.shadow = true;
-                    resetSelect(shadow_triggers);
-                    currentPos.shadow = null;
-                    shadow.classList.add("services-calc-cms-item-hide");
-                    errorTitle(shadowTitle, false)
-                } else {
-                    if (currentPos.shadow === null) {
-                        fillForm.shadow = false;
+
+                if (currentPos.group !== "model"){//Если находимся не на странице Модел
+                    // если в триггере включен Shadow
+                     inShadow = getComputedStyle(tr.querySelector('.in-shadow')).display == 'none' ? false : true;
+                    if (!inShadow) {
+                        fillForm.shadow = true;
+                        resetSelect(shadow_triggers);
+                        currentPos.shadow = null;
+                        shadow.classList.add("services-calc-cms-item-hide");
+                        // errorTitle(shadowTitle, false)
+                    } else {
+                        if (currentPos.shadow === null) {
+                            fillForm.shadow = false;
+                        }
+                        shadow.classList.remove("services-calc-cms-item-hide")
                     }
-                    shadow.classList.remove("services-calc-cms-item-hide")
+
+                    // если в триггере включен Object
+                    inObject = getComputedStyle(tr.querySelector('.in-object')).display == 'none' ? false : true;
+                    if (!inObject) {
+                        fillForm.objects = true;
+                        resetSelect(objects_triggers);
+                        currentPos.obj = "single";
+                        currentPos.objTitle = null;
+                        objects.classList.add("services-calc-cms-item-hide");
+                        //  errorTitle(objectsTitle, false)
+                    } else {
+                        if (currentPos.objTitle === null) {
+                            fillForm.objects = false;
+                        }
+                        objects.classList.remove("services-calc-cms-item-hide")
+                    }
                 }
 
-                // если в триггере включен Object
-                let inObject = getComputedStyle(tr.querySelector('.in-object')).display == 'none' ? false : true;
-                if (!inObject) {
-                    fillForm.objects = true;
-                    resetSelect(objects_triggers);
-                    currentPos.obj = "single";
-                    currentPos.objTitle = null;
-                    objects.classList.add("services-calc-cms-item-hide");
-                    errorTitle(objectsTitle, false)
-                } else {
-                    if (currentPos.objTitle === null) {
-                        fillForm.objects = false;
-                    }
-                    objects.classList.remove("services-calc-cms-item-hide")
-                }
 
                 //console.log(inShadow);
                 currentPos.shootTitle = tr.querySelector('.title-trigger').innerHTML;
-                let titleShotType = tr.querySelector('.title-trigger').innerHTML.split(" ")[0].toLowerCase();
-                visibleObjects(showParam[titleShotType])
-                //console.log(titleShotType)
+                let titleShotType = tr.querySelector('.title-trigger').innerText.toLowerCase().replaceAll(" ","_") //.split(" ")[0].toLowerCase();
+                //console.log(showParam)
+
+                if (currentPos.group !== "model"){//Если находимся не на странице Модел
+                    visibleObjects(showParam[titleShotType])
+                }
+
+
                 currentPos.shoot = titleShotType;
                 resetSelect(shootType_triggers);
                 tr.querySelector('.trigger-wrap').classList.add("trigger-wrap-active");
-                // заполняем новыми картинками OBJECTS
-                if (inObject) {
-                    objects_triggers.forEach((trigger) => {
-                        let titleTriggerObj = trigger.querySelector('.title-trigger').innerHTML.split(" ")[0].toLowerCase();
-                        if (showParam[titleShotType].includes(currentPos.obj)) {
-                            trigger.querySelector('img').sizes = "";
-                            trigger.querySelector('img').srcset = "";
-                            trigger.querySelector('img').src = imagesForObjects[titleShotType][titleTriggerObj];
-                        } else {
-                            currentPos.obj = "single";
-                            resetSelect(objects_triggers);
-                            fillForm.objects = false;
-                        }
 
-                    })
+                if (currentPos.group !== "model") {//Если находимся не на странице Модел
+                    // заполняем новыми картинками OBJECTS
+                    if (inObject) {
+                        objects_triggers.forEach((trigger) => {
+                            let titleTriggerObj = trigger.querySelector('.title-trigger').innerHTML.split(" ")[0].toLowerCase();
+                            if (showParam[titleShotType].includes(currentPos.obj)) {
+                                trigger.querySelector('img').sizes = "";
+                                trigger.querySelector('img').srcset = "";
+                                trigger.querySelector('img').src = imagesForObjects[titleShotType][titleTriggerObj];
+                            } else {
+                                currentPos.obj = "single";
+                                resetSelect(objects_triggers);
+                                fillForm.objects = false;
+                            }
+
+                        })
+                    }
                 }
+
                 recalculatePrice()
                 recalcIroning()
-                sliderChange(price[currentPos.shoot + "_" + currentPos.obj].slider)
+                if (currentPos.group !== "model") {//Если находимся не на странице Модел
+                    sliderChange(price[currentPos.shoot + "_" + currentPos.obj].slider)
+                }
+
                 //getImageForCart(currentPos.obj)
             } // if (trigger_name === pathLink)
         })//shootType_triggers.forEach
 
+        /** Инициализация опций **/
         document.querySelectorAll(".options-block .services-calc-cms-item").forEach((option, optionId)=>{
+            let additionally = option.querySelector(".select-block")
             let optionName = option.querySelector(".t-20-700-title").innerText
             let groupName = optionName.toLowerCase().replaceAll(" ","_")
+            let optionDefault = option.querySelector(".default_seect") ? true : false;
             if( getComputedStyle(option).display !== 'none' ){
                 currentPos.options.push({
                     groupName: groupName,
                     optionTitle: optionName,
                     value: null,
-                    obj: option
+                    obj: option,
+                    count: 0,
+                    price: null
                 })
             }
+
+            /**
+             * show more for info block on option
+            **/
+            // Если есть info-block и в нем есть кнопка btn-more
+            let infoBlockForSkip = option.querySelector(".info-block-for-skip")
+            let staticInfoBlockForSkip = option.querySelector(".static-info-block-for-skip")
+            let btnMoreInfoBlockForSkip = option.querySelector(".info-block-for-skip .info-block-for-skip-btn-more")
+            let btnMoreStaticInfoBlockForSkip = option.querySelector(".static-info-block-for-skip .info-block-for-skip-btn-more")
+            if(infoBlockForSkip && btnMoreInfoBlockForSkip){
+                btnMoreInfoBlockForSkip.addEventListener('click', () => {
+                        option.querySelector(".info-block-for-skip .info-block-for-skip-more-block-content").classList.remove("info-block-for-skip-more-block-content--hide")
+                    btnMoreInfoBlockForSkip.classList.add("info-block-for-skip-btn-more--hide")
+                    })
+            }else if(staticInfoBlockForSkip && btnMoreStaticInfoBlockForSkip){
+                btnMoreStaticInfoBlockForSkip.addEventListener('click', () => {
+                    option.querySelector(".static-info-block-for-skip .info-block-for-skip-more-block-content").classList.remove("info-block-for-skip-more-block-content--hide")
+                    btnMoreStaticInfoBlockForSkip.classList.add("info-block-for-skip-btn-more--hide")
+                })
+            }
+            /** Берем массив тригерров **/
             let massTrigger = option.querySelectorAll(".option-list .option-item")
             massTrigger.forEach((tr,id)=>{
-
                 tr.addEventListener('click', () => {
                     errorTitleElement(option.querySelector(".t-20-700-title"), false)
                     resetSelect(massTrigger);
-                    tr.querySelector('.trigger-wrap').classList.add("trigger-wrap-active");
-                    let optionVal = tr.querySelector('.title-trigger').innerText.toLowerCase().replaceAll(" ","_")
-                    changeOptionCurrentPos(groupName, tr.querySelector('.title-trigger').innerText, optionVal)
-
-                    if(price[currentPos.shoot + "_" + optionVal]){
-                        recalculatePriceUniversal(optionVal)
-                        recalcSubtotal()
-                        sliderChange(price[currentPos.shoot + "_" + optionVal].slider)
+                    if(!tr.querySelector('.trigger-wrap').classList.contains('trigger-wrap-active')){
+                        tr.querySelector('.trigger-wrap').classList.add("trigger-wrap-active");
+                        if(additionally){
+                            additionally.querySelector(".button-select-active")?additionally.querySelector(".button-select-active").classList.remove("button-select-active"):null;
+                            additionally.querySelector(".remove-select-block-btn").click()
+                            if (additionally.querySelector(".info-block-for-skip")){
+                                additionally.querySelector(".info-block-for-skip").classList.add("info-block-for-skip--hide")
+                            }
+                        }
                     }
 
-                    console.log(currentPos)
+                    let optionVal = tr.querySelector('.title-trigger').innerText.toLowerCase().replaceAll(" ","_")
+
+                    if(tr.dataset.rules === "option"){
+                        option.querySelector(".select-block").classList.remove("select-block--hide")
+                        changeOptionCurrentPos(groupName, "", "", "", "")
+                    }else{
+                        changeOptionCurrentPos(groupName, tr.querySelector('.title-trigger').innerText, optionVal)
+                    }
+
+                    if(tr.dataset.rules === "skip"){
+                        if(option.querySelector(".select-block")){
+                            option.querySelector(".select-block").classList.add("select-block--hide")
+                        }
+                        if (option.querySelector(".info-block-for-skip")){
+                            option.querySelector(".info-block-for-skip").classList.remove("info-block-for-skip--hide")
+                        }
+                    }
+                    if (tr.dataset.info === "open"){
+                        if (option.querySelector(".info-block-for-skip")){
+                            option.querySelector(".info-block-for-skip").classList.remove("info-block-for-skip--hide")
+                        }
+                    }
+                    if (tr.dataset.info === "close"){
+                        if (option.querySelector(".info-block-for-skip")){
+                            option.querySelector(".info-block-for-skip").classList.add("info-block-for-skip--hide")
+                        }
+                    }
+                    if (tr.dataset.attributOpen){ // сли указан атрибут открытия какого то инфо блока
+                        let searchAttribut = tr.dataset.attributOpen
+                        document.querySelector(`[data-block-show="${searchAttribut}"]`)
+                            if(document.querySelector(`[data-block-show="${searchAttribut}"]`)){
+                                document.querySelector(`[data-block-show="${searchAttribut}"]`).classList.remove("usage-rights-notice--hide")
+                            }
+                    }
+                    if (tr.dataset.attributClose){ // сли указан атрибут акрытия какого то инфо блока
+                        let searchAttributClose = tr.dataset.attributClose
+                        document.querySelector(`[data-block-show="${searchAttributClose}"]`)
+                        if(document.querySelector(`[data-block-show="${searchAttributClose}"]`)){
+                            document.querySelector(`[data-block-show="${searchAttributClose}"]`).classList.add("usage-rights-notice--hide")
+                        }
+                    }
+                    let modelOptions = currentPos.options.find(item => item.groupName === "model_options");
+                    let modelType = modelOptions ? modelOptions.value:""
+                    let partOptionForProduct = option.value?option.value:""
+                    let extractPriceObj = price[currentPos.shoot + "_" + optionVal] || price[modelType + "_" + optionVal]
+                    if(modelType === optionVal){
+
+
+                        document.querySelectorAll('[data-influences-price="true"] .trigger-wrap').forEach((trigger)=>{
+                            if(trigger.classList.contains('trigger-wrap-active')){
+                                let newOptionVal= trigger.querySelector(".title-trigger").innerText.toLowerCase().replaceAll(" ","_")
+                                extractPriceObj = price[modelOptions.value + "_" + newOptionVal]
+                            }
+
+                        })
+                    }
+                    //let extractPriceObj = price[currentPos.shoot + "_" + optionVal] || price[currentPos.options.find(item => item.groupName === "model_options").value + "_" + optionVal]
+
+                    recalculatePrice()
+                    if(extractPriceObj) {
+                        recalcSubtotal()
+                        sliderChange(extractPriceObj.slider)
+                    }
+
+                    /** Определяем какие позиции нужно скрыть/отобразить **/
+                    let datasetHide = tr.dataset.hide
+                    if (datasetHide){
+                        if(datasetHide === "false"){
+                            /** Отображаем все опции **/
+                            //let findHideOption = currentPos.options.find(item => item.value === false);
+                            currentPos.options.forEach((itemOption)=>{
+                                let searchActivHideText = itemOption.obj.querySelector(".t-20-700-title").innerText
+                                let searchActivHide = document.querySelector(`.options-block [data-hide="${searchActivHideText}"] .trigger-wrap`)
+                                if(!searchActivHide || !searchActivHide.classList.contains('trigger-wrap-active')){
+                                    if(itemOption.value === false){
+                                        itemOption.value = "";
+                                        itemOption.obj.classList.remove("services-calc-cms-item-hide")
+                                    }
+                                }
+
+                            })
+                        }else {
+                            /** Скрываем опции указанные в data-hide="" **/
+                            let masOptionHide = datasetHide.split(/\s*,\s*/);
+                            masOptionHide = masOptionHide.map(item => item.toLowerCase().replace(/\s+/g, '_'))
+                            console.log("hide: ", masOptionHide)
+                            masOptionHide.forEach((itemName)=>{
+                                let findOption = currentPos.options.find(item => item.groupName === itemName);
+                                findOption.value = false;
+                                findOption.optionTitle = "";
+                                findOption.obj.classList.add("services-calc-cms-item-hide")
+                                console.log("trigger-wrap-active: ", findOption.obj.querySelector(".trigger-wrap-active"))
+                                if(findOption.obj.querySelector(".trigger-wrap-active")){
+                                    findOption.obj.querySelector(".trigger-wrap-active").classList.remove("trigger-wrap-active")
+                                }
+
+                            })
+                        }
+                    }
                 })
-                if (id === 0 && optionId === 0) {
+                if (optionDefault && id === 0) {
                     tr.click()
                 }
             })
+
+            /** Проверяем наличие подопций **/
+            if(additionally){
+                let additionallyPrice = Number(additionally.dataset.price) || null;
+                let inputElement = additionally.querySelector(".input-number-img")
+                let inputElementVal = inputElement.value
+                inputElement.oninput = function () {
+                    inputElement.classList.remove("input-number-img-err")
+                };
+
+                /** Кнопка пропуска опции SKIP  **/
+                let additionallyBtnSkip = additionally.querySelector(".btn-skip")
+                additionallyBtnSkip.addEventListener("click", (e)=>{
+                    let optionTitle = groupName === "outfits"? option.querySelector(".option-item[data-rules='option']").dataset.title:additionallyBtnSkip.querySelector(".title-trigger").innerText
+                    if(groupName === "outfits"){
+                        optionTitle = "1 "+ optionTitle
+                    }
+                    changeOptionCurrentPos(groupName,
+                        optionTitle,
+                        optionTitle,
+                        additionallyPrice?1:null,
+                        additionallyPrice)
+                    additionally.querySelector(".btn-skip").classList.add("button-select-active")
+                    if(additionally.querySelector(".info-block-for-skip")){
+                        additionally.querySelector(".info-block-for-skip").classList.remove("info-block-for-skip--hide")
+                    }
+
+                    errorTitle(additionally.parentNode.querySelector(".t-20-700-title"), false)
+                    recalcSubtotal()
+                })
+                /** открываем форму **/
+                additionally.querySelector(".btn-open-form").addEventListener("click", ()=>{
+                    showAditionallyForm (additionally, true, false)
+                    additionally.querySelector(".btn-skip").classList.remove("button-select-active")
+                    if(additionally.querySelector(".info-block-for-skip")){
+                        additionally.querySelector(".info-block-for-skip").classList.add("info-block-for-skip--hide")
+                    }
+                    recalcSubtotal()
+                })
+                /** нехотим вводить ничего в форму CANCEL **/
+                additionally.querySelector(".btn-cancel").addEventListener("click", ()=>{
+                    showAditionallyForm (additionally, false, false)
+                    changeOptionCurrentPos(groupName, "", "", "", "")
+                    recalcSubtotal()
+                })
+                /** применяем значения из формы **/
+                additionally.querySelector(".btn-add").addEventListener("click", ()=>{
+                    inputElementVal = inputElement.value
+                    if (!inputElementVal){inputElement.classList.add("input-number-img-err");return;}
+                    additionally.querySelector(".result-select-block-text").innerText = inputElementVal.slice(0, 34)
+                    showAditionallyForm (additionally, false, true)
+
+                    if(additionallyPrice){
+                        let textForSubOption = groupName === "outfits"? option.querySelector(".option-item[data-rules='option']").dataset.title:additionallyBtnSkip.querySelector(".title-trigger").innerText
+                        if(groupName === "outfits"){
+                            textForSubOption = inputElementVal+" "+ textForSubOption
+                            if(Number(inputElementVal)>1){
+                                textForSubOption = textForSubOption+"s"
+                            }
+                        }
+                        //let textForSubOption = option.querySelector(".option-item[data-rules='option'] .title-trigger").innerText
+                        changeOptionCurrentPos(groupName, textForSubOption, textForSubOption, Number(inputElementVal), additionallyPrice)
+                    }else{
+                        changeOptionCurrentPos(groupName, inputElementVal.slice(0, 34), inputElementVal)
+                    }
+                    recalcSubtotal()
+                })
+                /** отменяем ранее введенные значения Remove **/
+                additionally.querySelector(".remove-select-block-btn").addEventListener("click", ()=>{
+                    showAditionallyForm (additionally, false, false)
+                    // if(additionallyPrice){
+                    //     let textForSubOption = option.querySelector(".option-item[data-rules='option'] .title-trigger").innerText
+                    //     changeOptionCurrentPos(groupName, textForSubOption, textForSubOption, 0, 0)
+                    // }else{
+                    //     changeOptionCurrentPos(groupName, "", "")
+                    // }
+                    changeOptionCurrentPos(groupName, "", "", "", "")
+                    recalcSubtotal()
+                })
+
+            }
         })
     }// optionInit
 
+
+
     /** Изменение значения в определенной групе опции **/
-    function changeOptionCurrentPos(groupName, optionTitle, value){
+    function changeOptionCurrentPos(groupName, optionTitle=null, value=null, optionCount = null, optionPrice = null){
         let option = currentPos.options.find(item => item.groupName === groupName);
         if(groupName === "shadow" && optionTitle === "NONE"){
             option.optionTitle = "No shadow"
         }else{
-            option.optionTitle = optionTitle
+            if(optionTitle !== null){
+                option.optionTitle = optionTitle
+            }
         }
-        
-        option.value = value
+        if(value!== null){
+            option.value = value
+        }
+        if(optionCount!== null){
+            option.count = optionCount
+        }
+        if(optionPrice!== null){
+            option.price = optionPrice
+        }
         // console.log(option)
         // console.log(currentPos)
     }
+
+    /** Инициализируем все тригеры/опции **/
     optionInit()
 
     /*
@@ -496,6 +790,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if(val === "TBD"){return;}
 
         currentPos.subtotal = val
+        val = Math.ceil(val)
+
+        currentPos.options.forEach((option)=>{
+            if(option.price){
+                val = val+option.price*option.count
+                //sumPrice.innerHTML = formatNumber(sumPriceText)
+            }
+        })
+
         if (val > 1000) {
             let thous = Math.floor(val / 1000)
             let rest = val - thous * 1000
@@ -511,6 +814,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             subtotal.innerHTML = "$" + val
         }
+
+
     }
 
     function recalcIroning() {
@@ -747,8 +1052,18 @@ document.addEventListener('DOMContentLoaded', function () {
         let name = addOns.querySelector(".steam-title").innerText
         let btnAddOnsRemove = addOns.querySelector('.btn-add-ons-remove')
         let price = Number(addOns.querySelector('.ons-item-price').innerText)
+        let freeText = addOns.querySelector('.modal-porice-wrap--free')?addOns.querySelector('.modal-porice-wrap--free').innerText:""
+        currentPos.addons.push({
+            option: addOns_option_stat,
+            option_name:"",
+            option_desc: "",
+            name: name,
+            count: 0,
+            price: price,
+            price_option: false,
+            addOnsActive: false,
+            add_ons_desc:freeText})
 
-        currentPos.addons.push({option: addOns_option_stat, option_name:"", option_desc: "", name: name, count: 0, price: price, price_option: false, addOnsActive: false})
         addOns.querySelector(".add-ons-btn").addEventListener('click', () => {// Открываем модалку Адд Онс
             let modal = addOns.querySelector(".steam-modal-bg")
             let close = modal.querySelector(".cancel-icon")
@@ -817,15 +1132,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 }else{
                     currentPos.addons.find(addons => addons.name === name).count = Number(input.value)
+                    if(addOnsOption_price === 0){
+                        //currentPos.addons.find(addons => addons.name === name).add_ons_desc = modal-porice-wrap--free
+                    }
+
                 }
 
                 onsItems.innerHTML = input.value
                 let onsSum_text = addOns_option_stat?addOnsOption_price:input.value * price
-                
-                onsSum.innerHTML = onsSum_text==="TBD"? "("+onsSum_text+")":onsSum_text
+                if(onsSum_text === "TBD"){
+                    onsSum.innerHTML = "("+onsSum_text+")"
+                }else {
+                    if(Number(onsSum_text)>0){
+                        onsSum.innerHTML = onsSum_text
+                    }else{
+                        if(current_option?.price_option && current_option.price_option){
+                            onsSum.innerHTML = current_option.price_option
+                        }
+                    }
+
+                }
+
+                //     if(Number.isNaN(Number(onsSum_text))){
+                //     onsSum.innerText = "0"
+                // }else
+                //onsSum.innerHTML = onsSum_text==="TBD"? "("+onsSum_text+")":onsSum_text
+                // if(!Number.isNaN(Number(onsSum_text)) && !onsSum_text === "TBD"){
+                //
+                // }else{
+                //     onsSum.innerHTML = onsSum_text==="TBD"? "("+onsSum_text+")":onsSum_text
+                // }
+
 
                 
-                if(current_option?.price_option && current_option.price_option){
+                if(current_option?.price_option && current_option.price_option && Number(current_option.price) !== 0){
                     onsSum.innerHTML = onsSum.innerHTML+current_option.price_option
                 }
         
@@ -929,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let err = false, scroll = false;
         //console.log(fillForm)
         currentPos.options.forEach(option=>{
-            if(!option.value){
+            if(option.value === "" || option.value === null){
                 err = true;
                 errorTitle(option.obj.querySelector(".t-20-700-title"), true);
                 if (!scroll) {
@@ -957,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', function () {
             err = true;
             errorTitle(numberTitle, true);
             if (!scroll) {
-                smoothScroll(document.getElementById("#numberTitle"))
+                smoothScroll(document.getElementById("numberTitle"))
             }
         }
         if (err) {
