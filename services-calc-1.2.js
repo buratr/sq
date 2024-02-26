@@ -491,7 +491,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         })
                     }
                     //let extractPriceObj = price[currentPos.shoot + "_" + optionVal] || price[currentPos.options.find(item => item.groupName === "model_options").value + "_" + optionVal]
-
+                    if(currentPos.options.find(item => item.groupName === "model_options")){
+                        if(currentPos.options.find(item => item.groupName === "model_options").value === "my_model" &&
+                            currentPos.options.find(item => item.groupName === "model_type").value === "recognizable"){
+                            if(document.querySelector(`[data-block-show="usage rights notice"]`)){
+                                document.querySelector(`[data-block-show="usage rights notice"]`).classList.remove("usage-rights-notice--hide")
+                            }
+                        }
+                    }
                     recalculatePrice()
                     if(extractPriceObj) {
                         recalcSubtotal()
