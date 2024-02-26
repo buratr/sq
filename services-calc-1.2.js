@@ -497,6 +497,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             if(document.querySelector(`[data-block-show="usage rights notice"]`)){
                                 document.querySelector(`[data-block-show="usage rights notice"]`).classList.remove("usage-rights-notice--hide")
                             }
+                        }else{
+                            if(document.querySelector(`[data-block-show="usage rights notice"]`)){
+                                document.querySelector(`[data-block-show="usage rights notice"]`).classList.add("usage-rights-notice--hide")
+                            }
                         }
                     }
                     recalculatePrice()
