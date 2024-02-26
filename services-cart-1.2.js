@@ -200,8 +200,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function ucFirst(str) {
-        if (!str) return str;
-        return str[0].toUpperCase() + str.slice(1);
+        // if (!str) return str;
+        // return str[0].toUpperCase() + str.slice(1);
+        const words = str.split(' ');
+
+        if (words.length === 0) return '';
+
+        if (/^\d/.test(words[0])) {
+            if (words.length > 1) {
+                words[1] = words[1].charAt(0).toUpperCase() + words[1].slice(1);
+            }
+        } else {
+            words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+        }
+
+        return words.join(' ');
     }
 
     function createCartItem(item, id) {
