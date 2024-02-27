@@ -914,7 +914,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let addOnsStat = currentPos.addons.find(item => item.name === name);
         if (status) {
             addOnsBtn.classList.add("add-ons-btn-visible")
-            addOnsBtn.querySelector(".t-16-700").style.display = "none"
+            addOnsBtn.querySelector(".add-ons-costomize").style.display = "none"
             addOnsBtn.querySelector(".add-ons-edit").style.display = "block"
 
             onsBlok.classList.add("add-ons-wrap-active")
@@ -931,7 +931,7 @@ document.addEventListener('DOMContentLoaded', function () {
             btnAddOnsRemove.classList.remove("btn-add-ons-remove-visible")
             setNumberBtn.classList.remove("set-number-btn-dark--new--hide")
             addOnsBtn.classList.remove("add-ons-btn-visible")
-            addOnsBtn.querySelector(".t-16-700").style.display = ""
+            addOnsBtn.querySelector(".add-ons-costomize").style.display = ""
             addOnsBtn.querySelector(".add-ons-edit").style.display = ""
             onsBlok.classList.remove("add-ons-wrap-active")
             ironingPattern.classList.remove("ironing-pattern-visible")
