@@ -177,11 +177,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 currentPos.enterprise = extractPriceObj.enterprise
                  sumPriceText = sumPriceText + currentPos.price * (1 - currentPos.estimate.percent / 100);
 
-                sumPrice.innerHTML = formatNumber(sumPriceText)
+                sumPrice.innerText = formatNumber(sumPriceText)
                 sumEnterprise.innerHTML = currentPos.enterprise;
             }
 
         })
+        if(sumPrice.innerText === "0"){
+            currentPos.price = price[currentPos.shoot + "_" + currentPos.obj]?price[currentPos.shoot + "_" + currentPos.obj].price:null
+            //currentPos.enterprise = price[currentPos.shoot + "_" + currentPos.obj].enterprise
+            sumPrice.innerText = formatNumber(currentPos.price * (1 - currentPos.estimate.percent / 100));
+            //sumEnterprise.innerHTML = currentPos.enterprise;
+        }
         // currentPos.options.forEach((option)=>{
         //     if(price[currentPos.shoot + "_" + option.value]) {
         //         currentPos.price = price[currentPos.shoot + "_" + option.value].price
@@ -233,8 +239,8 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         arr.forEach((el) => {
             objects.querySelectorAll('.option-item').forEach((item) => {
-                item.querySelector('.title-trigger').innerHTML.split(" ")[0].toLowerCase();
-                if (item.querySelector('.title-trigger').innerHTML.split(" ")[0].toLowerCase() === el) {
+                item.querySelector('.title-trigger').innerText.toLowerCase().replaceAll(" ", "_");//.split(" ")[0].toLowerCase();
+                if (item.querySelector('.title-trigger').innerText.toLowerCase().replaceAll(" ", "_") === el) {
                     item.classList.remove("option-item-hide")
                 }
             })
@@ -533,17 +539,41 @@ document.addEventListener('DOMContentLoaded', function () {
                             console.log("hide: ", masOptionHide)
                             masOptionHide.forEach((itemName)=>{
                                 let findOption = currentPos.options.find(item => item.groupName === itemName);
-                                findOption.value = false;
-                                findOption.optionTitle = "";
-                                findOption.obj.classList.add("services-calc-cms-item-hide")
-                                console.log("trigger-wrap-active: ", findOption.obj.querySelector(".trigger-wrap-active"))
-                                if(findOption.obj.querySelector(".trigger-wrap-active")){
-                                    findOption.obj.querySelector(".trigger-wrap-active").classList.remove("trigger-wrap-active")
+                                if(findOption){
+                                    findOption.value = false;
+                                    findOption.optionTitle = "";
+                                    findOption.obj.classList.add("services-calc-cms-item-hide")
+                                    console.log("trigger-wrap-active: ", findOption.obj.querySelector(".trigger-wrap-active"))
+                                    if(findOption.obj.querySelector(".trigger-wrap-active")){
+                                        findOption.obj.querySelector(".trigger-wrap-active").classList.remove("trigger-wrap-active")
+                                    }
+                                }else{
+                                    document.querySelectorAll(".services-calc-cms-item").forEach((item)=>{
+                                        if(item.querySelector(".t-20-700-title").innerText.toLowerCase().replaceAll(" ", "_") === itemName){
+                                            item.classList.add("services-calc-cms-item-hide")
+                                        }
+                                    })
                                 }
+
 
                             })
                         }
                     }
+                    /** Если нужно скрыть какой то триггер **/
+                    if(tr.dataset.hideTrigger){
+                        document.querySelectorAll("[data-trigger]").forEach((hTrigger)=>{
+                            hTrigger.classList.remove("option-item-hide")
+                            let triggerWrap = hTrigger.querySelector(".trigger-wrap")
+                            if(triggerWrap.classList.contains('trigger-wrap-active')){
+                                triggerWrap.classList.remove("trigger-wrap-active")
+                                let timeTriggerName = triggerWrap.querySelector(".title-trigger").innerText.toLowerCase().replaceAll(" ", "_")
+                                currentPos.options.find(item => item.value === timeTriggerName).value = null;
+                            }
+                        })
+                        document.querySelector(`[data-trigger="${tr.dataset.hideTrigger}"]`).classList.add("option-item-hide")
+                    }
+
+
                 })
                 if (optionDefault && id === 0) {
                     tr.click()
@@ -642,11 +672,17 @@ document.addEventListener('DOMContentLoaded', function () {
             option.optionTitle = "No shadow"
         }else{
             if(optionTitle !== null){
-                option.optionTitle = optionTitle
+                if(option){
+                    option.optionTitle = optionTitle
+                }
+
             }
         }
         if(value!== null){
-            option.value = value
+            if(option){
+                option.value = value
+            }
+
         }
         if(optionCount!== null){
             option.count = optionCount
