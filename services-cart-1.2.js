@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
         cart_sum_pattern.classList.add("cart-sum-pattern");
 
         var sum_pattern_text = document.createElement("div");
-        sum_pattern_text.classList.add("sum-pattern-text");
+        sum_pattern_text.classList.add("sum-pattern-text-cart");
         sum_pattern_text.innerHTML = "$" + item.price + "/image or $" + item.enterprise + "+ for Members";
 
         var cart_item_remove = document.createElement("div");
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let cartItemPrice = creareDomElement("div", "cart-item-price", cartItemPriceText)
-        let countShootBlok = creareDomElement("div", "sum-pattern-text", item.count ==="skip" ? "" :`&nbsp;(${item.count} images)`)
+        let countShootBlok = creareDomElement("div", "sum-pattern-text-cart", item.count ==="skip" ? "" :`&nbsp;(${item.count} images)`)
 
         let cartItemAddonsList = creareDomElement("div", "cart-item-addons-list")
         item.addons.forEach((addOnse)=>{
