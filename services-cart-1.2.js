@@ -749,8 +749,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }//if(localCart)
 
 
-    document.querySelector('#cartClose').addEventListener('click', () => {
+    document.querySelector('#cartClosebtn').addEventListener('click', () => {
         showCart(false)
+        //alert("close")
     })
     cartBG.addEventListener('click', (e) => {
         if (e.target.classList.contains('cart-bg')) {
