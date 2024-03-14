@@ -95,25 +95,43 @@ let summaryData = [
 
 	 {planType: "pay_as_you_go", value: 1, dataName: "plan_a", price: 0, state: true, planInfo: "Free of charge"},
 	 {planType: "growth", value: 2, dataName: "plan_b", price: 0, state: false,
-		planInfo: {activeDiscount: "$2,500 per year", disableDiscount: "$1,750 every 6 months"},
+		planInfo: {	activeDiscount: "$2,500 per year",
+					disableDiscount: "$1,750 every 6 months",
+					activeDiscountMob: "$2,500/year",
+					disableDiscountMob: "$1,750/6 months"
+					},
 		planPrice: {activeDiscount: 2500, disableDiscount: 3500}
 	 },
 	 {planType: "enterprise", value: 3, dataName: "plan_c", price: 0, state: false,
-		planInfo: {activeDiscount: "$7,500 per year", disableDiscount: "$2,675 every 6 months"},
-		planPrice: {activeDiscount: 7500, disableDiscount: 5350}
+		planInfo: {	activeDiscount: "$7,500 per year",
+					disableDiscount: "$5,250 every 6 months",
+					activeDiscountMob: "$7,500/year",
+					disableDiscountMob: "$5,250/6 months"
+		},
+		planPrice: {activeDiscount: 7500, disableDiscount: 10500}
 	 },
 	{planType: "starter", value: 4, dataName: "plan_d", price: 0, state: false,
-		planInfo: {activeDiscount: "$500 per year", disableDiscount: "$350 every 6 months"},
+		planInfo: {	activeDiscount: "$500 per year",
+					disableDiscount: "$350 every 6 months",
+					activeDiscountMob: "$500/year",
+					disableDiscountMob: "$350/6 months"
+		},
 		planPrice: {activeDiscount: 500, disableDiscount: 700}
 	},
 	 {name: "discount", item: 20, state: false},
 	 {dataName: "image_total_count", total: 0},
 	 {dataName: "peice_per_image", total: 0},
-	 {dataName: "image_total", total: 0},
-	 {dataName: 'plan_info', planPrice: 0, total: 'Free of charge'},
+	 {dataName: "image_total", total: 0, totalStandart: 0},
+	 {dataName: 'plan_info', planPrice: 0, total: 'Free of charge', totalMob: 'Free of charge'},
 	 {dataName: "total", total: 0},
 	 {dataName: "save", total: 0},
 ]
+
+// определяем что в данным момент используется мобильное устройство
+function isMobileResolution() {
+	const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+	if (screenWidth < 767) {return true;} else {return false;}
+}
 
 //change count
 const counterPlus = function(counterIndex) {
@@ -167,7 +185,19 @@ const imagePriceSelected = function() {
 	})
 	return arr
 }
-
+function formatNumber(number) {
+	// Разделяем число на целую и дробную части
+	const [integerPart, decimalPart] = number.toString().split('.');
+	// Форматируем целую часть, добавляя разделители тысяч
+	const formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	// Если есть дробная часть, возвращаем число с точкой и отформатированной целой частью
+	if (decimalPart) {
+		return `${formattedIntegerPart}.${decimalPart}`;
+	} else {
+		// Иначе возвращаем только отформатированную целую часть
+		return formattedIntegerPart;
+	}
+}
 // send data to front
 const sendDataSummary = function() {
 	{// send data to expand summary block and update in modal-footer section
@@ -177,7 +207,7 @@ const sendDataSummary = function() {
 			})
 			//find and compare data from front and in summaryData
 			if (data.dataName === el.dataset.name && data.dataName != undefined && el.dataset.name != undefined) {
-				el.innerText = data.total
+				el.innerText = formatNumber(data.total)
 			}
 		})
 	}
@@ -230,8 +260,14 @@ const inputEvent = function(...itemsData) { //
 				break;
 			}
 			case "plan_c": {// Enterprise
-				getStartedBtn.querySelector(".btn-text-calc").innerText = "book a demo"
-				getStartedBtn.href = "https://calendly.com/sqshot/30min"
+				if(summaryData.find(el => el.name === 'discount').state){ // if discount = true
+					getStartedBtn.querySelector(".btn-text-calc").innerText = "become a member"
+					getStartedBtn.href = "https://buy.stripe.com/cN2aEK01v6zFbjGaEJ" // if discount = true
+				}else{
+					getStartedBtn.querySelector(".btn-text-calc").innerText = "become a member"
+					getStartedBtn.href = "https://buy.stripe.com/aEU4gmdSlcY3gE04gk" // if discount = false
+				}
+
 				break;
 			}
 		}
@@ -258,12 +294,21 @@ const inputEvent = function(...itemsData) { //
 			summaryData.find(el => {
 				return el.name === itemsData[0].name
 			}).state = true;
+			let currentPlan =  checkPlanSelected()
+			if(currentPlan.dataName === "plan_c"){
+				getStartedBtn.href = "https://buy.stripe.com/cN2aEK01v6zFbjGaEJ" // if discount = true
+			}
 			calculator();
 		}
 		else {
 			summaryData.find(el => {
 				return el.name === itemsData[0].name
 			}).state = false;
+			let currentPlan =  checkPlanSelected()
+			if(currentPlan.dataName === "plan_c"){
+				getStartedBtn.href = "https://buy.stripe.com/aEU4gmdSlcY3gE04gk" // if discount = false
+			}
+
 			calculator();
 		}
 	}
@@ -326,7 +371,9 @@ const calculator = function() {
 
 	let imageSummaryItems = [];
 	let imagePricePlan = [];
+	let imagePricePlanStandart = [];
 	let imageTotal = [];
+	let imageTotalStandart = [];
 
 	{//calculate image count
 		summaryData.forEach(item => {
@@ -349,7 +396,9 @@ const calculator = function() {
 		let getImagePrice = summaryData.forEach(el => {
 				if (el.price) {
 					let priceItem = el.price[plan.dataName]
+					let priceItemStandart = el.price["plan_a"]
 					imagePricePlan.push(priceItem)
+					imagePricePlanStandart.push(priceItemStandart)
 				}
 			})
 	}
@@ -358,13 +407,19 @@ const calculator = function() {
 		for (i = 0; i < imageSummaryItems.length; i++) {
 			if (imageSummaryItems[i] > 0) {
 				let imagePriceSummary = imageSummaryItems[i] * imagePricePlan[i]
+				let imagePriceSummaryStandart = imageSummaryItems[i] * imagePricePlanStandart[i]
 				imageTotal.push(imagePriceSummary)
+				imageTotalStandart.push(imagePriceSummaryStandart)
 			}
 		}
 		let result = imageTotal.reduce((previousValue, currentValue) => {
 			return Number(previousValue) + Number(currentValue)
 		}, 0);
+		let resultStandart = imageTotalStandart.reduce((previousValue, currentValue) => {
+			return Number(previousValue) + Number(currentValue)
+		}, 0);
 		summaryData.find(item => item.dataName === 'image_total').total = result;
+		summaryData.find(item => item.dataName === 'image_total').totalStandart = resultStandart;
 	}
 
 	{//show data price in summary
@@ -374,7 +429,7 @@ const calculator = function() {
 			summaryData.find(item => item.dataName === 'peice_per_image').total = minPrice;
 		}
 		else if (imagePriceSelected().length > 1) {
-			summaryData.find(item => item.dataName === 'peice_per_image').total = minPrice+" - $"+maxPrice
+			summaryData.find(item => item.dataName === 'peice_per_image').total = minPrice+"-$"+maxPrice
 		}
 		else {
 			summaryData.find(item => item.dataName === 'peice_per_image').total = 0;
@@ -386,7 +441,7 @@ const calculator = function() {
 		let discountStatus = summaryData.find(el => el.name === 'discount').state
 
 		if (discountStatus === true && plan.planInfo.activeDiscount != undefined) {
-			summaryData.find(item => item.dataName === 'plan_info').total = plan.planInfo.activeDiscount
+			summaryData.find(item => item.dataName === 'plan_info').total = isMobileResolution()?plan.planInfo.activeDiscountMob:plan.planInfo.activeDiscount
 			summaryData.find(item => item.dataName === 'plan_info').planPrice = plan.planPrice.activeDiscount
 		}
 		else if (plan.planInfo.activeDiscount == undefined) {
@@ -394,7 +449,7 @@ const calculator = function() {
 			summaryData.find(item => item.dataName === 'plan_info').planPrice = 0;
 		}
 		else {
-			summaryData.find(item => item.dataName === 'plan_info').total = plan.planInfo.disableDiscount;
+			summaryData.find(item => item.dataName === 'plan_info').total = isMobileResolution()?plan.planInfo.disableDiscountMob:plan.planInfo.disableDiscount;
 			summaryData.find(item => item.dataName === 'plan_info').planPrice = plan.planPrice.disableDiscount;
 		}
 	}
@@ -402,21 +457,30 @@ const calculator = function() {
 	{//calculate save & total
 		let plan = checkPlanSelected();
 		let imageTotalSum =	summaryData.find(item => item.dataName === "image_total").total
+		let imageTotalSumStandart =	summaryData.find(item => item.dataName === "image_total").totalStandart
 		let planPrice = summaryData.find(item => item.dataName === "plan_info").planPrice
 		let saveData = summaryData.find(item => item.dataName === 'save');
 		let calcTotal = summaryData.find(item => item.dataName === 'total');
 		calcTotal.total = planPrice + imageTotalSum;
 
-		if (plan.value == 2) {
-			let calcSave = Math.round(Number((imageTotalSum)*0.25) + Number(imageTotalSum), 1)
-			calcSave - (imageTotalSum + planPrice) < 0 ? saveData.total = 0 : saveData.total = calcSave - (imageTotalSum + planPrice);
-
-		}
-		else if (plan.value == 3) {
-			let calcSave = Math.round(Number((imageTotalSum)*0.42857142857142854) + Number(imageTotalSum), 1)
-			calcSave - (imageTotalSum + planPrice) < 0 ? saveData.total = 0 : saveData.total = calcSave - (imageTotalSum + planPrice);
-		}
-		else {
+		// if (plan.value == 2) { // GROWTH 20%
+		// 	// let calcSave = Math.round(Number((imageTotalSum)*0.25) + Number(imageTotalSum), 1)
+		// 	// calcSave - (imageTotalSum + planPrice) < 0 ? saveData.total = 0 : saveData.total = calcSave - (imageTotalSum + planPrice);
+		// }
+		// else if (plan.value == 3) { // ENTERPRISE 30%
+		// 	// let calcSave = Math.round(Number((imageTotalSum)*0.42857142857142854) + Number(imageTotalSum), 1)
+		// 	// calcSave - (imageTotalSum + planPrice) < 0 ? saveData.total = 0 : saveData.total = calcSave - (imageTotalSum + planPrice);
+		// }
+		// else if (plan.value == 4) { // STARTER 10%
+		// 	// let calcSave = Math.round(Number((imageTotalSum)*0.42857142857142854) + Number(imageTotalSum), 1)
+		// 	// calcSave - (imageTotalSum + planPrice) < 0 ? saveData.total = 0 : saveData.total = calcSave - (imageTotalSum + planPrice);
+		// 	let calcSave = Math.round(Number(imageTotalSumStandart) - (Number(imageTotalSum) + planPrice), 1)
+		// 	calcSave>0?saveData.total = calcSave:saveData.total = 0
+		// }
+		if(plan.value > 1){
+			let calcSave = Math.round(Number(imageTotalSumStandart) - (Number(imageTotalSum) + planPrice), 1)
+			calcSave>0?saveData.total = calcSave:saveData.total = 0
+		}else {
 			saveData.total = 0;
 		}
 	}
