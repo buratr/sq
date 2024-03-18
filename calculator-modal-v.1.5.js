@@ -95,24 +95,24 @@ let summaryData = [
 
 	 {planType: "pay_as_you_go", value: 1, dataName: "plan_a", price: 0, state: true, planInfo: "Free of charge"},
 	 {planType: "growth", value: 2, dataName: "plan_b", price: 0, state: false,
-		planInfo: {	activeDiscount: "$2,500 per year",
-					disableDiscount: "$1,750 every 6 months",
+		planInfo: {	activeDiscount: "$2,500/year",
+					disableDiscount: "$1,750/6 months",
 					activeDiscountMob: "$2,500/year",
 					disableDiscountMob: "$1,750/6 months"
 					},
 		planPrice: {activeDiscount: 2500, disableDiscount: 3500}
 	 },
 	 {planType: "enterprise", value: 3, dataName: "plan_c", price: 0, state: false,
-		planInfo: {	activeDiscount: "$7,500 per year",
-					disableDiscount: "$5,250 every 6 months",
+		planInfo: {	activeDiscount: "$7,500/year",
+					disableDiscount: "$5,250/6 months",
 					activeDiscountMob: "$7,500/year",
 					disableDiscountMob: "$5,250/6 months"
 		},
 		planPrice: {activeDiscount: 7500, disableDiscount: 10500}
 	 },
 	{planType: "starter", value: 4, dataName: "plan_d", price: 0, state: false,
-		planInfo: {	activeDiscount: "$500 per year",
-					disableDiscount: "$350 every 6 months",
+		planInfo: {	activeDiscount: "$500/year",
+					disableDiscount: "$350/6 months",
 					activeDiscountMob: "$500/year",
 					disableDiscountMob: "$350/6 months"
 		},
