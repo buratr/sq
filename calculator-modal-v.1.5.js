@@ -100,7 +100,7 @@ let summaryData = [
 					activeDiscountMob: "$2,500/year",
 					disableDiscountMob: "$1,750/6 months"
 					},
-		planPrice: {activeDiscount: 2500, disableDiscount: 3500}
+		planPrice: {activeDiscount: 2500, disableDiscount: 1750}
 	 },
 	 {planType: "enterprise", value: 3, dataName: "plan_c", price: 0, state: false,
 		planInfo: {	activeDiscount: "$7,500/year",
@@ -108,7 +108,7 @@ let summaryData = [
 					activeDiscountMob: "$7,500/year",
 					disableDiscountMob: "$5,250/6 months"
 		},
-		planPrice: {activeDiscount: 7500, disableDiscount: 10500}
+		planPrice: {activeDiscount: 7500, disableDiscount: 5250}
 	 },
 	{planType: "starter", value: 4, dataName: "plan_d", price: 0, state: false,
 		planInfo: {	activeDiscount: "$500/year",
@@ -116,7 +116,7 @@ let summaryData = [
 					activeDiscountMob: "$500/year",
 					disableDiscountMob: "$350/6 months"
 		},
-		planPrice: {activeDiscount: 500, disableDiscount: 700}
+		planPrice: {activeDiscount: 500, disableDiscount: 350}
 	},
 	 {name: "discount", item: 20, state: false},
 	 {dataName: "image_total_count", total: 0},
