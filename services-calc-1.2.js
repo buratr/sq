@@ -169,9 +169,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let sumPriceText = 0;
         currentPos.options.forEach((option)=>{
             sumPriceText = 0;
-            let modelOptions = currentPos.options.find(item => item.groupName === "model_options");
+            let modelOptions = currentPos.options.find(item => item.groupName === "model_option");
             let modelType = modelOptions ? modelOptions.value:""
-            let partOptionForProduct = option.value?option.value:"single"
+            let partOptionForProduct = option.value//?option.value:"single"
             let extractPriceObj = price[currentPos.shoot + "_" + partOptionForProduct] || price[modelType + "_" + option.value]
             if(extractPriceObj) {
                 currentPos.price = extractPriceObj.price
