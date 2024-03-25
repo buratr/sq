@@ -72,23 +72,29 @@ document.addEventListener('DOMContentLoaded', function () {
     var scrollPosition = 0;
 
     function scrollOff() {
-        var oldWidth = $body.innerWidth();
-        scrollPosition = window.pageYOffset;
-        $body.css('overflow', 'hidden');
-        $body.css('position', 'fixed');
-        $body.css('top', `-${scrollPosition}px`);
-        $body.width(oldWidth);
+        // var oldWidth = $body.innerWidth();
+        // scrollPosition = window.pageYOffset;
+        // $body.css('overflow', 'hidden');
+        // $body.css('position', 'fixed');
+        // $body.css('top', `-${scrollPosition}px`);
+        // $body.width(oldWidth);
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        window.onscroll = function() {
+            window.scrollTo(scrollLeft, scrollTop);
+        };
     }
 
     function scrollOn() {
-        if ($body.css('overflow') != 'hidden') {
-            scrollPosition = window.pageYOffset;
-        }
-        $body.css('overflow', '');
-        $body.css('position', '');
-        $body.css('top', '');
-        $body.width('');
-        $(window).scrollTop(scrollPosition);
+        // if ($body.css('overflow') != 'hidden') {
+        //     scrollPosition = window.pageYOffset;
+        // }
+        // $body.css('overflow', '');
+        // $body.css('position', '');
+        // $body.css('top', '');
+        // $body.width('');
+        // $(window).scrollTop(scrollPosition);
+        window.onscroll = null;
     }
 
     function getImageForCart(obj) {
