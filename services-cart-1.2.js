@@ -50,12 +50,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showCart(stat) {
         if (stat) {
-            var oldWidth = $body.innerWidth();
-            scrollPosition = window.pageYOffset;
-            $body.css('overflow', 'hidden');
-            $body.css('position', 'fixed');
-            $body.css('top', `-${scrollPosition}px`);
-            $body.width(oldWidth);
+            // var oldWidth = $body.innerWidth();
+            // scrollPosition = window.pageYOffset;
+            // $body.css('overflow', 'hidden');
+            // $body.css('position', 'fixed');
+            // $body.css('top', `-${scrollPosition}px`);
+            // $body.width(oldWidth);
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            window.onscroll = function() {
+                window.scrollTo(scrollLeft, scrollTop);
+            };
 //$('body').css("overflowY", "hidden");
             cartBG.classList.remove("cart-bg-hide");
             setTimeout(() => {
@@ -63,14 +68,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 cartPanel.classList.add("cart-panel-visible")
             }, 10)
         } else {
-            if ($body.css('overflow') != 'hidden') {
-                scrollPosition = window.pageYOffset;
-            }
-            $body.css('overflow', '');
-            $body.css('position', '');
-            $body.css('top', '');
-            $body.width('');
-            $(window).scrollTop(scrollPosition);
+            // if ($body.css('overflow') != 'hidden') {
+            //     scrollPosition = window.pageYOffset;
+            // }
+            // $body.css('overflow', '');
+            // $body.css('position', '');
+            // $body.css('top', '');
+            // $body.width('');
+            // $(window).scrollTop(scrollPosition);
+            window.onscroll = null;
 //$('body').css("overflowY", "scroll");
             cartBG.classList.add("cart-bg-opacity");
             cartPanel.classList.remove("cart-panel-visible")
