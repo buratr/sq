@@ -380,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 recalculatePrice()
                 recalcIroning()
+
                 if (currentPos.group !== "model") {//Если находимся не на странице Модел
                     sliderChange(price[currentPos.shoot + "_" + currentPos.obj].slider)
                 }
@@ -482,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             document.querySelector(`[data-block-show="${searchAttributClose}"]`).classList.add("usage-rights-notice--hide")
                         }
                     }
-                    let modelOptions = currentPos.options.find(item => item.groupName === "model_options");
+                    let modelOptions = currentPos.options.find(item => item.groupName === "model_option");
                     let modelType = modelOptions ? modelOptions.value:""
                     let partOptionForProduct = option.value?option.value:""
                     let extractPriceObj = price[currentPos.shoot + "_" + optionVal] || price[modelType + "_" + optionVal]
@@ -492,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.querySelectorAll('[data-influences-price="true"] .trigger-wrap').forEach((trigger)=>{
                             if(trigger.classList.contains('trigger-wrap-active')){
                                 let newOptionVal= trigger.querySelector(".title-trigger").innerText.toLowerCase().replaceAll(" ","_")
-                                extractPriceObj = price[modelOptions.value + "_" + newOptionVal]
+                                extractPriceObj = price[modelOptions.value==="model"?"my_model":modelOptions.value + "_" + newOptionVal]
                             }
 
                         })
