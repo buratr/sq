@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     let itemIroning = 0;
-    let subTotal = 0
+    let subTotal = 0;
+    let finSubTotalCart = 0;
     let skip = false
     let cartBG = document.querySelector('.cart-bg')
     let cartExist_e = document.querySelector('.cart-exist')
@@ -710,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function () {
                // valAll = valAll * (1 - currentPos.estimate.percent / 100)
             }
             //let valAll = subTotal + (itemIroning*3);
-
+            finSubTotalCart = valAll
             if (valAll > 1000) {
                 showMinOrderBlock(false)
                 let thousAll = Math.floor(valAll / 1000)
@@ -732,6 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             cartSubtotal.innerHTML = "TOTAL: TBD";
+            finSubTotalCart = "TBD"
             showMinOrderBlock(true)
         }
 
@@ -860,9 +862,13 @@ document.addEventListener('DOMContentLoaded', function () {
             AllSubtotal = "TBD"
         }
         finCart.cart.push({allSubtotal: AllSubtotal})
-        let param = JSON.stringify(finCart.cart)
+
+        localCart_fin.subtotal = finSubTotalCart
+
+        let param = JSON.stringify(localCart_fin)//JSON.stringify(finCart.cart)
+
         window.open('https://app.squareshot.com/new-request/step1?cart=' + param, '_blank');
-        console.log(finCart)
+        console.log(localCart_fin)
     })//click
 
     window.addEventListener('opencart', () => {
@@ -888,9 +894,34 @@ document.addEventListener('DOMContentLoaded', function () {
         let localCart_Time = JSON.parse(getLocalCart())
         let selectedOption = selectCartEstimate.options[selectCartEstimate.selectedIndex];
         let timeEstimate = null;
-        if(selectedOption.innerText !== "PAY AS YOU GO"){
-            timeEstimate = selectedOption.innerText
-        }
+        console.log("eee")
+
+            timeEstimate = selectedOption.innerText;
+            localCart_Time.cart.forEach(item=>{
+                if(item.group === "product" && item.count !== "skip"){
+                    switch (timeEstimate) {
+                        case "PAY AS YOU GO": item.subtotal = (item.count * item.price);    break;
+                        case "STARTER": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.starter / 100); break;
+                        case "GROWTH": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.growth / 100);break;
+                        case "ENTERPRISE": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.enterprise / 100);break;
+                    }
+                }else if(item.group === "model" && item.count !== "skip"){
+                    switch (timeEstimate) {
+                        case "PAY AS YOU GO": item.subtotal = (item.count * item.price);    break;
+                        case "STARTER": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.starter / 100); break;
+                        case "GROWTH": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.growth/ 100);break;
+                        case "ENTERPRISE": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.enterprise / 100);break;
+                    }
+                }
+                if(item.count !== "skip"){
+                    item.options.forEach((option)=>{
+                        if(option.price){
+                            item.subtotal = item.subtotal+option.price*option.count
+                        }
+                    })
+                }
+            })
+
         localStorage.setItem('cart', JSON.stringify({cart: localCart_Time.cart, estimate:timeEstimate}));
         clearCart()
         CartFilling(getLocalCart())
