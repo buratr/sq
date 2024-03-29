@@ -8,6 +8,19 @@ document.addEventListener('DOMContentLoaded', function () {
     //     "model_options",
     //     "model_type"
     // ]
+    let estimateMass={
+        model:{
+            starter:5,
+            growth:10,
+            enterprise:15
+        },
+        product:{
+            starter:10,
+            growth:20,
+            enterprise:30
+        }
+    }
+
     let fillForm = {
         objects: false,
         shadow: false,
@@ -33,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         addons: [],
         options: [],
         estimate:{
-            name: null,
+            name: "PAY AS YOU GO",
             percent: 0,
             planPrice: 0
         }
@@ -850,6 +863,7 @@ document.addEventListener('DOMContentLoaded', function () {
         currentPos.options.forEach((option)=>{
             if(option.price){
                 val = val+option.price*option.count
+                currentPos.subtotal = currentPos.subtotal+option.price*option.count
                 //sumPrice.innerHTML = formatNumber(sumPriceText)
             }
         })
@@ -1384,13 +1398,78 @@ document.addEventListener('DOMContentLoaded', function () {
         let localCart = localStorage.getItem('cart');
         if (localCart) {
             localCart = JSON.parse(localCart)
-            localCart.cart.push(clone)
-            if(clone.estimate.name !== null){
+
+            if(clone.estimate.name !== "PAY AS YOU GO"){
                 localCart.estimate = clone.estimate.name
+            }
+
+            if(localCart.estimate  !== "PAY AS YOU GO"){
+                if(clone.group === "product" && clone.count !== "skip"){
+                    switch (localCart.estimate) {
+                        case "STARTER": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.starter / 100); break;
+                        case "GROWTH": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.growth / 100);break;
+                        case "ENTERPRISE": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.enterprise / 100);break;
+                    }
+                }else if(clone.group === "model" && clone.count !== "skip"){
+                    switch (localCart.estimate) {
+                        case "STARTER": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.starter / 100); break;
+                        case "GROWTH": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.growth/ 100);break;
+                        case "ENTERPRISE": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.enterprise / 100);break;
+                    }
+                }
+                if(clone.count !== "skip"){
+                    clone.options.forEach((option)=>{
+                        if(option.price){
+                            clone.subtotal = clone.subtotal+option.price*option.count
+                        }
+                    })
+                }
+            }
+            localCart.cart.push(clone)
+            if(clone.estimate.name !==  "PAY AS YOU GO"){
+                localCart.cart.forEach(item=>{
+                    if(item.group === "product" && item.count !== "skip"){
+                        switch (clone.estimate.name) {
+                            case "STARTER": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.starter / 100); break;
+                            case "GROWTH": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.growth / 100);break;
+                            case "ENTERPRISE": item.subtotal = (item.count * item.price) * (1 - estimateMass.product.enterprise / 100);break;
+                        }
+                    }else if(item.group === "model" && item.count !== "skip"){
+                        switch (clone.estimate.name) {
+                            case "STARTER": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.starter / 100); break;
+                            case "GROWTH": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.growth/ 100);break;
+                            case "ENTERPRISE": item.subtotal = (item.count * item.price) * (1 - estimateMass.model.enterprise / 100);break;
+                        }
+                    }
+                    if(item.count !== "skip"){
+                        item.options.forEach((option)=>{
+                            if(option.price){
+                                item.subtotal = item.subtotal+option.price*option.count
+                            }
+                        })
+                    }
+                })
+
             }
             localStorage.setItem('cart', JSON.stringify(localCart));
 //console.log(localCart);
         } else {
+            // if(clone.estimate.name !==  "PAY AS YOU GO"){
+            //     if(clone.group === "product" && clone.count !== "skip"){
+            //         switch (clone.estimate.name) {
+            //             case "STARTER": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.starter / 100); break;
+            //             case "GROWTH": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.growth / 100);break;
+            //             case "ENTERPRISE": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.product.enterprise / 100);break;
+            //         }
+            //     }else if(clone.group === "model" && clone.count !== "skip"){
+            //         switch (clone.estimate.name) {
+            //             case "STARTER": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.starter / 100); break;
+            //             case "GROWTH": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.growth/ 100);break;
+            //             case "ENTERPRISE": clone.subtotal = (clone.count * clone.price) * (1 - estimateMass.model.enterprise / 100);break;
+            //         }
+            //
+            //     }
+            // }
             let newCart = {cart: [clone]}
             newCart.estimate = clone.estimate.name
             localStorage.setItem('cart', JSON.stringify(newCart));
@@ -1414,7 +1493,13 @@ document.addEventListener('DOMContentLoaded', function () {
 //sliderMain.classList.remove("serv-slider-sticky-opacity")
 
     let selectEstimate = document.querySelector("#estimate")
-// Функция для обработки изменения выбора
+
+    // Узнать текущий выбранный план.
+    function getSelectPlan(){
+        return selectEstimate.options[selectEstimate.selectedIndex].innerText
+    }
+
+    // Функция для обработки изменения выбора плана
     function handleSelectChange() {
         // Получаем выбранный option
         let selectedOption = selectEstimate.options[selectEstimate.selectedIndex];
@@ -1422,11 +1507,26 @@ document.addEventListener('DOMContentLoaded', function () {
         // Получаем значения data-first-value и data-second-value
         let Percent = selectedOption.value;
         let planPrice = selectedOption.dataset.planPrice;
+        //console.log("Plan price: ", planPrice);
 
-        console.log("Percent: ", Percent);
-        console.log("Plan price: ", planPrice);
         currentPos.estimate.name = selectedOption.innerText
-        currentPos.estimate.percent = Number(Percent)
+        if(currentPos.group === "model"){
+            switch (selectedOption.innerText) {
+                case "PAY AS YOU GO":     currentPos.estimate.percent = 0;    break;
+                case "STARTER":     currentPos.estimate.percent = estimateMass.model.starter;    break;
+                case "GROWTH":      currentPos.estimate.percent = estimateMass.model.growth;     break;
+                case "ENTERPRISE":  currentPos.estimate.percent = estimateMass.model.enterprise; break;
+            }
+        }else if(currentPos.group === "product"){
+            switch (selectedOption.innerText) {
+                case "PAY AS YOU GO":     currentPos.estimate.percent = 0;    break;
+                case "STARTER":     currentPos.estimate.percent = estimateMass.product.starter;    break;
+                case "GROWTH":      currentPos.estimate.percent = estimateMass.product.growth;     break;
+                case "ENTERPRISE":  currentPos.estimate.percent = estimateMass.product.enterprise; break;
+            }
+        }
+        console.log("Percent: ", currentPos.estimate.percent);
+        //currentPos.estimate.percent = Number(Percent)
         currentPos.estimate.planPrice = Number(planPrice)
         recalculatePrice()
         recalcSubtotal()
