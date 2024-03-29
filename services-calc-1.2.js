@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     value: null,
                     obj: option,
                     count: 0,
-                    price: null
+                    price: 0
                 })
             }
 
