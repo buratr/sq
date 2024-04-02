@@ -767,6 +767,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     })
 
+    let idCart = Math.random().toString(36).substr(2, 9);
+
     cartContinue.addEventListener('click', () => {
         let finCart = {cart: []}
         let AllSubtotal = 0, skip = false;
@@ -866,8 +868,25 @@ document.addEventListener('DOMContentLoaded', function () {
         localCart_fin.subtotal = finSubTotalCart
 
         let param = JSON.stringify(localCart_fin)//JSON.stringify(finCart.cart)
-
-        window.open('https://app.squareshot.com/new-request/step1?cart=' + param, '_blank');
+        //let idCart = Math.random().toString(36).substr(2, 9);
+        localCart_fin.id = idCart
+        $.ajax({
+            url: 'https://squarehshot.bubbleapps.io/api/1.1/wf/cart_wf_api',
+            type: 'POST',
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('Authorization', 'Bearer b5c17c523b707afcee0cdec4a4b47426');
+            },
+            contentType: 'application/json',
+            data: JSON.stringify(localCart_fin),
+            success: function(response) {
+                console.log('Успешно отправлено:', response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Ошибка:', error);
+            }
+        });
+        window.open('https://app.squareshot.com/new-request/step1?id=' + idCart, '_blank');
+        // window.open('https://app.squareshot.com/new-request/step1?cart=' + param, '_blank');
         console.log(localCart_fin)
     })//click
 
@@ -894,7 +913,6 @@ document.addEventListener('DOMContentLoaded', function () {
         let localCart_Time = JSON.parse(getLocalCart())
         let selectedOption = selectCartEstimate.options[selectCartEstimate.selectedIndex];
         let timeEstimate = null;
-        console.log("eee")
 
             timeEstimate = selectedOption.innerText;
             localCart_Time.cart.forEach(item=>{
