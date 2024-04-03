@@ -867,17 +867,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
         localCart_fin.subtotal = finSubTotalCart
 
-        let param = JSON.stringify(localCart_fin)//JSON.stringify(finCart.cart)
+
         //let idCart = Math.random().toString(36).substr(2, 9);
         localCart_fin.id = idCart
+        let param = JSON.stringify(localCart_fin)//JSON.stringify(finCart.cart)
+
+        let formData = new FormData();
+
+        formData.append('jsonData', param);
+
+        // $.ajax({
+        //     url: 'https://squarehshot.bubbleapps.io/version-test/api/1.1/wf/cart_wf_api',//https://squarehshot.bubbleapps.io/api/1.1/wf/cart_wf_api
+        //     type: 'POST',
+        //     beforeSend: function(xhr) {
+        //         xhr.setRequestHeader('Authorization', 'Bearer b5c17c523b707afcee0cdec4a4b47426');
+        //     },
+        //     contentType: 'application/json',
+        //     data: JSON.stringify(localCart_fin),
+        //     success: function(response) {
+        //         console.log('Успешно отправлено:', response);
+        //     },
+        //     error: function(xhr, status, error) {
+        //         console.error('Ошибка:', error);
+        //     }
+        // });
+
         $.ajax({
-            url: 'https://squarehshot.bubbleapps.io/version-test/api/1.1/wf/cart_wf_api',//https://squarehshot.bubbleapps.io/api/1.1/wf/cart_wf_api
+            url: 'https://squarehshot.bubbleapps.io/version-test/api/1.1/wf/cart_wf_api',
             type: 'POST',
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('Authorization', 'Bearer b5c17c523b707afcee0cdec4a4b47426');
             },
-            contentType: 'application/json',
-            data: JSON.stringify(localCart_fin),
+            processData: false,  // Не обрабатывать данные
+            contentType: false,  // Установка contentType как false
+            data: formData,      // Использование объекта FormData
             success: function(response) {
                 console.log('Успешно отправлено:', response);
             },
@@ -885,6 +908,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Ошибка:', error);
             }
         });
+
         window.open('https://app.squareshot.com/new-request/step1?id=' + idCart, '_blank');
         // window.open('https://app.squareshot.com/new-request/step1?cart=' + param, '_blank');
         console.log(localCart_fin)
