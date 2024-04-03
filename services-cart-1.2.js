@@ -871,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function () {
         //let idCart = Math.random().toString(36).substr(2, 9);
         localCart_fin.id = idCart
         $.ajax({
-            url: 'https://app.squareshot.com/version-test/api/1.1/cart_wf_api',//https://squarehshot.bubbleapps.io/api/1.1/wf/cart_wf_api
+            url: 'https://squarehshot.bubbleapps.io/version-test/api/1.1/wf/cart_wf_api',//https://squarehshot.bubbleapps.io/api/1.1/wf/cart_wf_api
             type: 'POST',
             beforeSend: function(xhr) {
                 xhr.setRequestHeader('Authorization', 'Bearer b5c17c523b707afcee0cdec4a4b47426');
